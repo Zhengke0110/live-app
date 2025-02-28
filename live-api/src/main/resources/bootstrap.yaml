@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: live-api
+  cloud:
+    nacos:
+      username: nacos
+      password: nacos
+      discovery:
+        server-addr: localhost:8848
