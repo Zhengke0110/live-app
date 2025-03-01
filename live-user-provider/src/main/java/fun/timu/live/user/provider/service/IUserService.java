@@ -1,14 +1,12 @@
-package fun.timu.live.user.interfaces;
+package fun.timu.live.user.provider.service;
 
 import fun.timu.live.user.dto.UserDTO;
 
 import java.util.List;
 import java.util.Map;
 
-/**
- * 用户中台服务提供者接口
- */
-public interface IUserRpc {
+public interface IUserService {
+
     /**
      * 根据用户id进行查询
      *
@@ -17,9 +15,9 @@ public interface IUserRpc {
      */
     UserDTO getByUserId(Long userId);
 
-
     /**
      * 用户信息更新
+     *
      *
      * @param userDTO
      * @return
@@ -40,5 +38,5 @@ public interface IUserRpc {
      * @param userIdList
      * @return
      */
-    Map<Long, UserDTO> batchQueryUserInfo(List<Long> userIdList);
+    Map<Long,UserDTO> batchQueryUserInfo(List<Long> userIdList);
 }

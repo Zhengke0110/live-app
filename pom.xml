@@ -12,16 +12,26 @@
         <module>live-user-interface</module>
         <module>live-user-provider</module>
         <module>live-api</module>
+        <module>live-common-interface</module>
     </modules>
 
     <properties>
-        <mysql.version>8.0.28</mysql.version>
+        <mysql.version>8.0.31</mysql.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <springboot.version>3.0.4</springboot.version>
+
     </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
