@@ -1,5 +1,6 @@
 package fun.timu.live.user.provider.service.impl;
 
+import com.google.common.collect.Maps;
 import fun.timu.live.common.interfaces.utils.ConvertBeanUtils;
 import fun.timu.live.framework.redis.starter.key.UserProviderCacheKeyBuilder;
 import fun.timu.live.user.dto.UserDTO;
@@ -8,11 +9,20 @@ import fun.timu.live.user.provider.dao.po.UserPO;
 import fun.timu.live.user.provider.service.IUserService;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements IUserService {
@@ -66,6 +76,55 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public Map<Long, UserDTO> batchQueryUserInfo(List<Long> userIdList) {
-        return null;
+        if (CollectionUtils.isEmpty(userIdList)) {
+            return Maps.newHashMap();
+        }
+        userIdList = userIdList.stream().filter(id -> id > 10000).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(userIdList)) {
+            return Maps.newHashMap();
+        }
+        // redis
+        List<String> keyList = new ArrayList<>();
+        userIdList.forEach(userId -> {
+            keyList.add(cacheKeyBuilder.buildUserInfoKey(userId));
+        });
+
+        List<UserDTO> userDTOList = redisTemplate.opsForValue().multiGet(keyList).stream().filter(x -> x != null).collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(userDTOList) && userDTOList.size() == userIdList.size()) {
+            return userDTOList.stream().collect(Collectors.toMap(UserDTO::getUserId, x -> x));
+        }
+        List<Long> userIdInCacheList = userDTOList.stream().map(UserDTO::getUserId).collect(Collectors.toList());
+        List<Long> userIdNotInCacheList = userIdList.stream().filter(x -> !userIdInCacheList.contains(x)).collect(Collectors.toList());
+
+        Map<Long, List<Long>> userIdMap = userIdNotInCacheList.stream().collect(Collectors.groupingBy(userId -> userId % 100));
+        List<UserDTO> dbQueryResult = new CopyOnWriteArrayList<>();
+        userIdMap.values().parallelStream().forEach(queryUserIdList -> {
+            dbQueryResult.addAll(ConvertBeanUtils.convertList(userMapper.selectBatchIds(queryUserIdList), UserDTO.class));
+        });
+        // Redis 补偿
+        if (!CollectionUtils.isEmpty(dbQueryResult)) {
+            Map<String, UserDTO> saveCacheMap = dbQueryResult.stream().collect(Collectors.toMap(userDto -> cacheKeyBuilder.buildUserInfoKey(userDto.getUserId()), x -> x));
+            redisTemplate.opsForValue().multiSet(saveCacheMap);
+
+            //对命令执行批量过期设置操作
+            redisTemplate.executePipelined(new SessionCallback<Object>() {
+                @Override
+                public <K, V> Object execute(RedisOperations<K, V> operations) throws DataAccessException {
+                    for (String redisKey : saveCacheMap.keySet()) {
+                        operations.expire((K) redisKey, createRandomTime(), TimeUnit.SECONDS);
+                    }
+                    return null;
+                }
+            });
+
+            userDTOList.addAll(dbQueryResult);
+
+        }
+        return userDTOList.stream().collect(Collectors.toMap(UserDTO::getUserId, x -> x));
+    }
+
+    private int createRandomTime() {
+        int randomNumSecond = ThreadLocalRandom.current().nextInt(10000);
+        return randomNumSecond + 30 * 60;
     }
 }

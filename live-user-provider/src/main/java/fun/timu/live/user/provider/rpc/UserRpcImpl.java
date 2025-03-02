@@ -44,6 +44,6 @@ public class UserRpcImpl implements IUserRpc {
 
     @Override
     public Map<Long, UserDTO> batchQueryUserInfo(List<Long> userIdList) {
-        return Map.of();
+        return userService.batchQueryUserInfo(userIdList);
     }
 }
