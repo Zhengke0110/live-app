@@ -62,6 +62,8 @@
             <artifactId>mybatis-plus-boot-starter</artifactId>
             <version>${mybatis-plus.version}</version>
         </dependency>
+
+
         <dependency>
             <groupId>fun.timu</groupId>
             <artifactId>live-user-interface</artifactId>
