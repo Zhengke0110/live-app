@@ -1,1 +1,2 @@
 fun.timu.live.framework.redis.starter.config.RedisConfig
+fun.timu.live.framework.redis.starter.key.UserProviderCacheKeyBuilder

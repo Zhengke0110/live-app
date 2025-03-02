@@ -1,6 +1,7 @@
 package fun.timu.live.user.provider.service.impl;
 
 import fun.timu.live.common.interfaces.utils.ConvertBeanUtils;
+import fun.timu.live.framework.redis.starter.key.UserProviderCacheKeyBuilder;
 import fun.timu.live.user.dto.UserDTO;
 import fun.timu.live.user.provider.dao.mapper.IUserMapper;
 import fun.timu.live.user.provider.dao.po.UserPO;
@@ -21,6 +22,9 @@ public class UserServiceImpl implements IUserService {
     @Resource
     private RedisTemplate<String, UserDTO> redisTemplate;
 
+    @Resource
+    private UserProviderCacheKeyBuilder cacheKeyBuilder;
+
     @Autowired
     public UserServiceImpl(IUserMapper userMapper) {
         this.userMapper = userMapper;
@@ -36,7 +40,7 @@ public class UserServiceImpl implements IUserService {
     public UserDTO getByUserId(Long userId) {
         // 检查传入的用户ID是否为null
         if (userId == null) return null;
-        String key = "UserInfo:" + userId;
+        String key = cacheKeyBuilder.buildUserInfoKey(userId);
         UserDTO userDTO = redisTemplate.opsForValue().get(key);
         if (userDTO != null) return userDTO;
 
