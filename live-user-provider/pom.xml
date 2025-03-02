@@ -66,6 +66,12 @@
 
         <dependency>
             <groupId>fun.timu</groupId>
+            <artifactId>live-framework-datasource-starter</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>fun.timu</groupId>
             <artifactId>live-user-interface</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>

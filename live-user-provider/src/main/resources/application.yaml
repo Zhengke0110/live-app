@@ -2,3 +2,18 @@ spring:
   datasource:
     driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
     url: jdbc:shardingsphere:classpath:db-sharding.yaml
+    hikari:
+      pool-name: user-pool
+      minimum-idle: 15
+      maximum-pool-size: 300
+      connection-timeout: 4000
+      max-lifetime: 60000
+dubbo:
+  application:
+    name: live-user-application
+  registry:
+    address: nacos://127.0.0.1:8848
+  server: true
+  protocol:
+    name: dubbo
+    port: 9090

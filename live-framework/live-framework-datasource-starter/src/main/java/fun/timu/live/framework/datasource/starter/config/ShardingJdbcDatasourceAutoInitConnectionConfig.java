@@ -1,4 +1,4 @@
-package fun.timu.live.user.provider.config;
+package fun.timu.live.framework.datasource.starter.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +11,6 @@ import java.sql.Connection;
 
 @Configuration
 public class ShardingJdbcDatasourceAutoInitConnectionConfig {
-    private static Class<ShardingJdbcDatasourceAutoInitConnectionConfig> ShardingJdbcDatasourceAutoInitConnectionCo;
     private static final Logger LOGGER = LoggerFactory.getLogger(ShardingJdbcDatasourceAutoInitConnectionConfig.class);
 
     @Bean
