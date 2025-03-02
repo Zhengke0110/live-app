@@ -10,5 +10,6 @@
     <packaging>pom</packaging>
     <modules>
         <module>live-framework-datasource-starter</module>
+        <module>live-framework-redis-starter</module>
     </modules>
 </project>

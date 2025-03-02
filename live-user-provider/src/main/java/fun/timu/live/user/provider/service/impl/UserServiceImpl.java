@@ -5,7 +5,9 @@ import fun.timu.live.user.dto.UserDTO;
 import fun.timu.live.user.provider.dao.mapper.IUserMapper;
 import fun.timu.live.user.provider.dao.po.UserPO;
 import fun.timu.live.user.provider.service.IUserService;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,6 +17,9 @@ import java.util.Map;
 public class UserServiceImpl implements IUserService {
 
     private final IUserMapper userMapper;
+
+    @Resource
+    private RedisTemplate<String, UserDTO> redisTemplate;
 
     @Autowired
     public UserServiceImpl(IUserMapper userMapper) {
@@ -31,8 +36,14 @@ public class UserServiceImpl implements IUserService {
     public UserDTO getByUserId(Long userId) {
         // 检查传入的用户ID是否为null
         if (userId == null) return null;
-        // 使用MyBatis Plus的userMapper根据用户ID查询用户信息，并转换为UserDTO对象返回
-        return ConvertBeanUtils.convert(userMapper.selectById(userId), UserDTO.class);
+        String key = "UserInfo:" + userId;
+        UserDTO userDTO = redisTemplate.opsForValue().get(key);
+        if (userDTO != null) return userDTO;
+
+        userDTO = ConvertBeanUtils.convert(userMapper.selectById(userId), UserDTO.class);
+
+        if (userDTO != null) redisTemplate.opsForValue().set(key, userDTO);
+        return userDTO;
     }
 
     @Override
