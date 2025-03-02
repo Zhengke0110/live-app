@@ -48,15 +48,18 @@ public class UserServiceImpl implements IUserService {
      */
     @Override
     public UserDTO getByUserId(Long userId) {
-        // 检查传入的用户ID是否为null
-        if (userId == null) return null;
+        if (userId == null) {
+            return null;
+        }
         String key = cacheKeyBuilder.buildUserInfoKey(userId);
         UserDTO userDTO = redisTemplate.opsForValue().get(key);
-        if (userDTO != null) return userDTO;
-
+        if (userDTO != null) {
+            return userDTO;
+        }
         userDTO = ConvertBeanUtils.convert(userMapper.selectById(userId), UserDTO.class);
-
-        if (userDTO != null) redisTemplate.opsForValue().set(key, userDTO);
+        if (userDTO != null) {
+            redisTemplate.opsForValue().set(key, userDTO, 30, TimeUnit.MINUTES);
+        }
         return userDTO;
     }
 
