@@ -42,6 +42,14 @@ public class UserRpcImpl implements IUserRpc {
         return userService.insertOne(userDTO);
     }
 
+    /**
+     * 批量查询用户信息
+     *
+     * @param userIdList 用户ID列表，用于指定需要查询的用户
+     * @return 返回一个映射，键为用户ID，值为用户信息DTO
+     *
+     * 此方法通过用户ID列表批量查询用户信息，以Map形式返回，便于高效查找和使用用户数据
+     */
     @Override
     public Map<Long, UserDTO> batchQueryUserInfo(List<Long> userIdList) {
         return userService.batchQueryUserInfo(userIdList);
