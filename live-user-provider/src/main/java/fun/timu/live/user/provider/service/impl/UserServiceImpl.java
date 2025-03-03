@@ -1,5 +1,6 @@
 package fun.timu.live.user.provider.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
 import fun.timu.live.common.interfaces.utils.ConvertBeanUtils;
 import fun.timu.live.framework.redis.starter.key.UserProviderCacheKeyBuilder;
@@ -8,6 +9,8 @@ import fun.timu.live.user.provider.dao.mapper.IUserMapper;
 import fun.timu.live.user.provider.dao.po.UserPO;
 import fun.timu.live.user.provider.service.IUserService;
 import jakarta.annotation.Resource;
+import org.apache.rocketmq.client.producer.MQProducer;
+import org.apache.rocketmq.common.message.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisOperations;
@@ -35,9 +38,12 @@ public class UserServiceImpl implements IUserService {
     @Resource
     private UserProviderCacheKeyBuilder cacheKeyBuilder;
 
+    private final MQProducer mqProducer;
+
     @Autowired
-    public UserServiceImpl(IUserMapper userMapper) {
+    public UserServiceImpl(IUserMapper userMapper, MQProducer mqProducer) {
         this.userMapper = userMapper;
+        this.mqProducer = mqProducer;
     }
 
 
@@ -83,6 +89,17 @@ public class UserServiceImpl implements IUserService {
     public boolean updateUserInfo(UserDTO userDTO) {
         if (userDTO == null || userDTO.getUserId() == null) return false;
         userMapper.updateById(ConvertBeanUtils.convert(userDTO, UserPO.class));
+        String key = cacheKeyBuilder.buildUserInfoKey(userDTO.getUserId());
+        redisTemplate.delete(key);
+        try {
+            Message message = new Message();
+            message.setBody(JSON.toJSONString(userDTO).getBytes());
+            message.setTopic("user-update-cache");
+            mqProducer.send(message);
+            message.setDelayTimeLevel(1);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         return true;
     }
 

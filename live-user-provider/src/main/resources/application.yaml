@@ -28,3 +28,13 @@ dubbo:
   protocol:
     name: dubbo
     port: 9090
+
+rocketmq:
+  producer:
+    name-srv: 127.0.0.1:9876
+    send-time-out: 3000
+    retry-times: 3
+    group-name: ${spring.application.name}
+  consumer:
+    name-srv: 127.0.0.1:9876
+    group-name: ${spring.application.name}
