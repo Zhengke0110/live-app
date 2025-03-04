@@ -25,7 +25,6 @@
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <springboot.version>3.0.4</springboot.version>
-
     </properties>
 
     <dependencies>

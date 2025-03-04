@@ -3,7 +3,16 @@ spring:
     name: live-user-provider
   cloud:
     nacos:
-      username: nacos
-      password: nacos
+      #      username: nacos
+      #      password: nacos
       discovery:
         server-addr: localhost:8848
+      config:
+        import-check:
+          enabled: false
+        file-extension: yaml
+        # 读取配置的nacos地址
+        server-addr: localhost:8848
+  config:
+    import:
+      - optional:nacos:live-user-provider.yaml
