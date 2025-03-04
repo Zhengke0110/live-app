@@ -2,8 +2,11 @@ package fun.timu.live.user.provider.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
+import fun.timu.live.common.interfaces.topic.UserProviderTopicNames;
 import fun.timu.live.common.interfaces.utils.ConvertBeanUtils;
 import fun.timu.live.framework.redis.starter.key.UserProviderCacheKeyBuilder;
+import fun.timu.live.user.constants.CacheAsyncDeleteCode;
+import fun.timu.live.user.dto.UserCacheAsyncDeleteDTO;
 import fun.timu.live.user.dto.UserDTO;
 import fun.timu.live.user.provider.dao.mapper.IUserMapper;
 import fun.timu.live.user.provider.dao.po.UserPO;
@@ -20,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -57,56 +61,79 @@ public class UserServiceImpl implements IUserService {
      */
     @Override
     public UserDTO getByUserId(Long userId) {
-        // 参数校验，如果userId为null，则直接返回null
         if (userId == null) {
             return null;
         }
-
-        // 构建缓存键
         String key = cacheKeyBuilder.buildUserInfoKey(userId);
-
-        // 尝试从Redis缓存中获取用户信息
         UserDTO userDTO = redisTemplate.opsForValue().get(key);
-
-        // 如果从缓存中获取到用户信息，则直接返回
         if (userDTO != null) {
             return userDTO;
         }
-
-        // 如果缓存中未命中，则从数据库中查询用户信息
         userDTO = ConvertBeanUtils.convert(userMapper.selectById(userId), UserDTO.class);
-
-        // 如果查询到用户信息，则将其缓存到Redis中，并设置过期时间
         if (userDTO != null) {
             redisTemplate.opsForValue().set(key, userDTO, 30, TimeUnit.MINUTES);
         }
-
-        // 返回查询到的用户信息
         return userDTO;
     }
 
+    /**
+     * 更新用户信息的方法
+     *
+     * @param userDTO 用户数据传输对象，包含要更新的用户信息
+     * @return 如果更新失败或参数无效，则返回false；否则返回true
+     */
     @Override
     public boolean updateUserInfo(UserDTO userDTO) {
-        if (userDTO == null || userDTO.getUserId() == null) return false;
-        userMapper.updateById(ConvertBeanUtils.convert(userDTO, UserPO.class));
-        String key = cacheKeyBuilder.buildUserInfoKey(userDTO.getUserId());
-        redisTemplate.delete(key);
-        try {
-            Message message = new Message();
-            message.setBody(JSON.toJSONString(userDTO).getBytes());
-            message.setTopic("user-update-cache");
-            mqProducer.send(message);
-            message.setDelayTimeLevel(1);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        // 检查传入的用户对象是否为空或用户ID是否为空，如果任一条件满足，则返回false
+        if (userDTO == null || userDTO.getUserId() == null) {
+            return false;
         }
+        // 将用户DTO转换为用户PO并更新数据库中的用户信息
+        int updateStatus = userMapper.updateById(ConvertBeanUtils.convert(userDTO, UserPO.class));
+        // 如果数据库更新操作成功（更新状态大于-1），则进行缓存删除操作
+        if (updateStatus > -1) {
+            // 构建缓存键并删除Redis中的用户信息缓存
+            String key = cacheKeyBuilder.buildUserInfoKey(userDTO.getUserId());
+            redisTemplate.delete(key);
+            // 准备异步删除缓存的消息体
+            UserCacheAsyncDeleteDTO userCacheAsyncDeleteDTO = new UserCacheAsyncDeleteDTO();
+            userCacheAsyncDeleteDTO.setCode(CacheAsyncDeleteCode.USER_INFO_DELETE.getCode());
+            Map<String, Object> jsonParam = new HashMap<>();
+            jsonParam.put("userId", userDTO.getUserId());
+            userCacheAsyncDeleteDTO.setJson(JSON.toJSONString(jsonParam));
+            // 创建消息对象，用于发送异步缓存删除指令
+            Message message = new Message();
+            message.setTopic(UserProviderTopicNames.CACHE_ASYNC_DELETE_TOPIC);
+            message.setBody(JSON.toJSONString(userCacheAsyncDeleteDTO).getBytes());
+            // 设置消息延迟级别，以实现缓存的二次删除
+            message.setDelayTimeLevel(1);
+            // 发送消息到消息队列，如果发送失败，则抛出运行时异常
+            try {
+                mqProducer.send(message);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        // 返回true表示用户信息更新操作执行成功
         return true;
     }
 
+    /**
+     * 插入单个用户记录
+     * 此方法用于将用户信息插入数据库，确保用户ID不为空
+     *
+     * @param userDTO 用户数据传输对象，包含用户信息
+     * @return 插入操作的成功与否，成功返回true，失败返回false
+     */
     @Override
     public boolean insertOne(UserDTO userDTO) {
+        // 检查用户对象和用户ID是否为空，为空则返回false
         if (userDTO == null || userDTO.getUserId() == null) return false;
+
+        // 转换用户DTO为用户PO并调用Mapper方法插入数据库
         userMapper.insert(ConvertBeanUtils.convert(userDTO, UserPO.class));
+
+        // 插入成功后返回true
         return true;
     }
 
