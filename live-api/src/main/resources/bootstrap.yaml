@@ -3,7 +3,13 @@ spring:
     name: live-api
   cloud:
     nacos:
-      username: nacos
-      password: nacos
       discovery:
         server-addr: localhost:8848
+      config:
+        import-check:
+          enabled: false
+        file-extension: yaml
+        server-addr: localhost:8848
+  config:
+    import:
+      - optional:nacos:live-api.yaml

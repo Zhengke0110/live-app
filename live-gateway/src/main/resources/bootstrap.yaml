@@ -1,0 +1,24 @@
+server:
+  port: 80
+spring:
+  application:
+    name: live-gateway
+  cloud:
+    nacos:
+      #      username: nacos
+      #      password: nacos
+      discovery:
+        server-addr: localhost:8848
+      config:
+        import-check:
+          enabled: false
+        file-extension: yaml
+        # 读取配置的nacos地址
+        server-addr: localhost:8848
+#  config:
+#    import:
+#      - optional:nacos:live-gateway.yaml
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty.http.client: DEBUG
