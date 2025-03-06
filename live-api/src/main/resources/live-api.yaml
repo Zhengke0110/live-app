@@ -1,0 +1,13 @@
+dubbo:
+  application:
+    name: live-api
+  registry:
+    address: nacos://127.0.0.1:8848
+  protocol:
+    name: dubbo
+    port: 8889
+
+server:
+  port: 8888
+  servlet:
+    context-path: /live/api/
