@@ -1,0 +1,16 @@
+spring:
+  cloud:
+    nacos:
+      #      username: nacos
+      #      password: nacos
+      discovery:
+        server-addr: 127.0.0.1:8848
+      config:
+        import-check:
+          enabled: false
+        # 当前服务启动后去nacos中读取配置文件的后缀
+        file-extension: yaml
+        server-addr: 127.0.0.1:8848
+  config:
+    import:
+      - optional:nacos:live-msg-provider.yaml

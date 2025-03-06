@@ -6,22 +6,14 @@
         <artifactId>live-app</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <artifactId>live-user-provider</artifactId>
+    <artifactId>live-msg-provider</artifactId>
 
-    <properties>
-
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <curator.version>2.12.0</curator.version>
-        <druid.version>1.1.20</druid.version>
-        <hessian.version>4.0.38</hessian.version>
-        <jetty.version>9.4.28.v20200408</jetty.version>
-        <spring-cloud-alibaba.version>2022.0.0.0-RC1</spring-cloud-alibaba.version>
-        <rocketmq.client.version>4.8.0</rocketmq.client.version>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <maven.compiler.compilerVersion>17</maven.compiler.compilerVersion>
-    </properties>
     <dependencies>
+        <dependency>
+            <groupId>fun.timu</groupId>
+            <artifactId>live-msg-interface</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.dubbo</groupId>
             <artifactId>dubbo-spring-boot-starter</artifactId>
@@ -38,7 +30,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-bootstrap</artifactId>
-            <version>3.0.4</version>
+            <version>${spring-cloud-starter-bootstrap.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -51,36 +43,15 @@
             </exclusions>
         </dependency>
 
-        <!-- 数据库驱动 (根据您使用的数据库选择) -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>${mysql.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.apache.shardingsphere</groupId>
-            <artifactId>shardingsphere-jdbc-core</artifactId>
-            <version>${sharding.jdbc.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-boot-starter</artifactId>
             <version>${mybatis-plus.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.rocketmq</groupId>
-            <artifactId>rocketmq-client</artifactId>
-            <version>${rocketmq.client.version}</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>fun.timu</groupId>
-            <artifactId>live-framework-datasource-starter</artifactId>
-            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>fun.timu</groupId>
@@ -89,23 +60,22 @@
         </dependency>
         <dependency>
             <groupId>fun.timu</groupId>
-            <artifactId>live-user-interface</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>fun.timu</groupId>
             <artifactId>live-common-interface</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.shardingsphere</groupId>
+            <artifactId>shardingsphere-jdbc-core</artifactId>
+            <version>${sharding.jdbc.version}</version>
+        </dependency>
     </dependencies>
+
     <build>
         <plugins>
+            <!-- 将springboot应用打包成jar-->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <classifier>exec</classifier>
-                </configuration>
             </plugin>
         </plugins>
     </build>
