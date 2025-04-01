@@ -12,4 +12,9 @@ public class MsgCheckDTO implements Serializable {
     private static final long serialVersionUID = 1L;
     private boolean checkStatus;
     private String desc;
+
+    public MsgCheckDTO(boolean checkStatus, String desc) {
+        this.checkStatus = checkStatus;
+        this.desc = desc;
+    }
 }
