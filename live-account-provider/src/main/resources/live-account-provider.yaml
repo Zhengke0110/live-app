@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: live-account-provider
+  data:
+    redis:
+      port: 6379
+      host: 127.0.0.1
+      lettuce:
+        pool:
+          min-idle: 10
+          max-active: 50
+          max-idle: 20
+dubbo:
+  application:
+    name: ${spring.application.name}
+  registry:
+    address: nacos://127.0.0.1:8848
+  protocol:
+    name: dubbo
+    port: 9093

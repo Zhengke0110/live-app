@@ -22,7 +22,7 @@ spring:
           max-idle: 20
 dubbo:
   application:
-    name: live-user-provider
+    name: ${spring.application.name}
   registry:
     address: nacos://127.0.0.1:8848
   server: true
